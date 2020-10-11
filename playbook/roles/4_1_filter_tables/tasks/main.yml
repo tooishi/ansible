@@ -1,0 +1,142 @@
+---
+- name: begin role
+  debug: msg="4_1 filter tables"
+
+# ---------------------------------------------------------
+# 4_1  filter_tables
+# ---------------------------------------------------------
+- name: filter_4_1_1_1
+  command: iptables -A INPUT -p tcp -m tcp --tcp-flags ALL NONE -j DROP
+  tags: filter_4_1_1_1
+
+- name: filter_4_1_1_2
+  command: iptables -A INPUT -p tcp -m tcp ! --tcp-flags FIN,SYN,RST,ACK SYN -m state --state NEW -j DROP
+  tags: filter_4_1_1_2
+
+- name: filter_4_1_1_3
+  command: iptables -A INPUT -p tcp -m tcp --tcp-flags ALL ALL -j DROP
+  tags: filter_4_1_1_3
+
+- name: filter_4_1_2_1
+  command: iptables -A INPUT -p icmp -j ACCEPT
+  tags: filter_4_1_2_1
+
+- name: filter_4_1_2_2
+  command: iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+  tags: filter_4_1_2_2
+
+- name: filter_4_1_2_3
+  command: iptables -A INPUT -p tcp -s 127.0.0.1/32 -d 127.0.0.1/32 -m state --state NEW -m tcp --dport 5555 -j ACCEPT
+  tags: filter_4_1_2_3
+
+- name: filter_4_1_2_4
+  command: iptables -A INPUT -p tcp -s 0.0.0.0/0 -d {{ ip_address }}/32 -m state --state NEW -m tcp --dport 22 -j ACCEPT
+  tags: filter_4_1_2_4
+
+- name: filter_4_1_2_5_1
+  command: iptables -A INPUT -p udp -s 0.0.0.0/0 -d {{ ip_address }}/32 -m state --state NEW -m udp --dport 123 -j ACCEPT
+  tags: filter_4_1_2_5_1
+
+- name: filter_4_1_2_5_2
+  command: iptables -A INPUT -p udp -s 127.0.0.1/32 -d 127.0.0.1/32 -m state --state NEW -m udp --dport 123 -j ACCEPT
+  tags: filter_4_1_2_5_2
+
+- name: filter_4_1_2_6_1
+  command: iptables -A INPUT -p udp -s 0.0.0.0/0 -d {{ ip_address }}/32 -m state --state NEW -m udp --dport 162 -j ACCEPT
+  tags: filter_4_1_2_6_1
+
+- name: filter_4_1_2_6_2
+  command: iptables -A INPUT -p udp -s 127.0.0.1/32 -d 127.0.0.1/32 -m state --state NEW -m udp --dport 162 -j ACCEPT
+  tags: filter_4_1_2_6_2
+
+- name: filter_4_1_3_1_1
+  command: iptables -N PROMETHEUS
+  tags: filter_4_1_3_1_1
+
+- name: filter_4_1_3_1_2
+  command: iptables -N GRAFANA
+  tags: filter_4_1_3_1_2
+
+- name: filter_4_1_3_2_1
+  command: iptables -A PROMETHEUS -p tcp -s {{ ip_address }}/32 -d {{ ip_address }}/32 --dport 3903 -m state --state NEW -m tcp -j ACCEPT
+  tags: filter_4_1_3_2_1
+
+- name: filter_4_1_3_2_2
+  command: iptables -A PROMETHEUS -p tcp -s 172.17.0.0/16 -i docker0 -d {{ ip_address }}/32 --dport 3903 -m state --state NEW -m tcp -j ACCEPT
+  tags: filter_4_1_3_2_2
+
+- name: filter_4_1_3_3_1
+  command: iptables -A PROMETHEUS -p tcp -s {{ ip_address }}/32 -d {{ ip_address }}/32 --dport 9100 -m state --state NEW -m tcp -j ACCEPT
+  tags: filter_4_1_3_3_1
+
+- name: filter_4_1_3_3_2
+  command: iptables -A PROMETHEUS -p tcp -s 172.17.0.0/16 -i docker0 -d {{ ip_address }}/32 --dport 9100 -m state --state NEW -m tcp -j ACCEPT
+  tags: filter_4_1_3_3_2
+
+- name: filter_4_1_3_4_1
+  command: iptables -A PROMETHEUS -p tcp -s {{ ip_address }}/32 -d {{ ip_address }}/32 --dport 9116 -m state --state NEW -m tcp -j ACCEPT
+  tags: filter_4_1_3_4_1
+
+- name: filter_4_1_3_4_2
+  command: iptables -A PROMETHEUS -p tcp -s 172.17.0.0/16 -i docker0 -d {{ ip_address }}/32 --dport 9116 -m state --state NEW -m tcp -j ACCEPT
+  tags: filter_4_1_3_4_2
+
+- name: filter_4_1_3_5_1
+  command: iptables -A PROMETHEUS -p tcp -s {{ ip_address }}/32 -d {{ ip_address }}/32 --dport 9290 -m state --state NEW -m tcp -j ACCEPT
+  tags: filter_4_1_3_5_1
+
+- name: filter_4_1_3_5_2
+  command: iptables -A PROMETHEUS -p tcp -s 172.17.0.0/16 -i docker0 -d {{ ip_address }}/32 --dport 9290 -m state --state NEW -m tcp -j ACCEPT
+  tags: filter_4_1_3_5_2
+
+- name: filter_4_1_3_6_1
+  command: iptables -A PROMETHEUS -p tcp -s {{ ip_address }}/32 -d {{ ip_address }}/32 --dport 9090 -m state --state NEW -m tcp -j ACCEPT
+  tags: filter_4_1_3_6_1
+
+- name: filter_4_1_3_6_2
+  command: iptables -A PROMETHEUS -p tcp -s 172.17.0.0/16 -i docker0 -d {{ ip_address }}/32 --dport 9090 -m state --state NEW -m tcp -j ACCEPT
+  tags: filter_4_1_3_6_2
+
+- name: filter_4_1_3_7
+  command: iptables -A INPUT -p tcp -s 0.0.0.0/0 -d {{ ip_address }}/32 ! --dport 3000 -j PROMETHEUS
+  tags: filter_4_1_3_7
+
+- name: filter_4_1_4_1
+  command: iptables -A GRAFANA -p tcp -s 0.0.0.0/0 -d {{ ip_address }}/32 --dport 3000 -m state --state NEW -m tcp -j ACCEPT
+  tags: filter_4_1_4_1
+
+- name: filter_4_1_4_2
+  command: iptables -A INPUT -p tcp -s 0.0.0.0/0 -d {{ ip_address }}/32 --dport 3000 -j GRAFANA
+  tags: filter_4_1_4_2
+
+- name: filter_4_1_5_1_1
+  command: iptables -A INPUT -m limit --limit 1/s -j LOG --log-prefix '[IPTABLES INPUT] {{":"}} '
+  tags: filter_4_1_5_1_1
+
+- name: filter_4_1_5_1_2
+  command: iptables -A FORWARD -m limit --limit 1/s -j LOG --log-prefix '[IPTABLES FORWARD] {{":"}} '
+  tags: filter_4_1_5_1_2
+
+- name: filter_4_1_5_2
+  command: iptables -P INPUT DROP
+  tags: filter_4_1_5_2
+
+- name: filter_4_2_1_1
+  command: iptables -t nat -I PREROUTING 1 -j RETURN
+  tags: filter_4_2_1_1
+
+- name: filter_4_2_1_2
+  command: iptables -t nat -I PREROUTING 1 -p tcp -s {{ ip_address }}/32 -d {{ ip_address }}/32 --dport 9090 -j DOCKER
+  tags: filter_4_2_1_2
+
+- name: filter_4_2_1_3
+  command: iptables -t nat -I PREROUTING 1 -p tcp -s 172.17.0.0/16 -i docker0 -d {{ ip_address }}/32 --dport 9090 -j DOCKER
+  tags: filter_4_2_1_3
+
+- name: filter_4_3_1
+  command: /etc/init.d/netfilter-persistent save
+  tags: filter_4_3_1
+
+- name: filter_4_3_2
+  command: /etc/init.d/netfilter-persistent reload
+  tags: filter_4_3_2

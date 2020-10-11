@@ -1,0 +1,8 @@
+modules:
+  zdlsserver-BMC:
+    user: "ADMIN"
+    pass: "ADMIN"
+    driver: "LAN_2_0"
+    privilege: "user"
+
+    exclude_sensor_ids:

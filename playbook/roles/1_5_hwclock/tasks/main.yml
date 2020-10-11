@@ -1,0 +1,10 @@
+---
+- name: begin role
+  debug: msg="1_5  sync hardware clock"
+
+# ---------------------------------------------------------
+# 1-5  sync hardware clock
+# ---------------------------------------------------------
+- name: sync hwclock
+  command: hwclock --systohc --utc
+  tags: sync_hwclock

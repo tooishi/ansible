@@ -1,0 +1,56 @@
+---
+- name: begin role
+  debug: msg="1_6  deploy the packages for v6(300M)"
+
+# ---------------------------------------------------------
+# 1-6  deploy the packages
+# ---------------------------------------------------------
+- name: zdls_pkg_copy
+  copy:
+    src: ./deb_files/packages
+    dest: /home/zdlsadmin/tmp/deb_files
+  tags: zdls_pkg_copy
+
+- name: zdls_key_copy
+  copy:
+    src: ./GPG
+    dest: /home/zdlsadmin/tmp
+  tags: zdls_key_copy
+
+- name: docker_key_add
+#  command: apt-key add /home/zdlsadmin/tmp/GPG/docker.gpg
+  apt_key:
+    file: /home/zdlsadmin/tmp/GPG/docker.gpg
+  tags: docker_key_add
+
+- name: nvidia_pkg_copy
+  copy:
+    src: ./NVIDIA
+    dest: /home/zdlsadmin/tmp
+  tags: nvidia_pkg_copy
+
+- name: backup-sourcelist
+  copy:
+    src: /etc/apt/sources.list
+    dest: /etc/apt/sources.list.org
+    backup: yes
+  tags: backup-sourcelist
+
+- name: create_new_source
+  copy:
+    content: "deb file:/home/zdlsadmin/tmp/deb_files/ ./"
+    dest: /etc/apt/sources.list
+    backup: yes
+  tags: create_new_source
+
+- name: archive_create
+  shell: cd /home/zdlsadmin/tmp/deb_files; apt-ftparchive packages . | gzip -c9 > /home/zdlsadmin/tmp/deb_files/Packages.gz
+  tags: archive_create,zdls_pkg_copy
+
+- name: archive_update
+  command: apt update --allow-insecure-repositories
+#  apt:
+#    update_cache: yes
+#    allow_unauthenticated: yes
+#    force: yes
+  tags: archive_update,zdls_pkg_copy

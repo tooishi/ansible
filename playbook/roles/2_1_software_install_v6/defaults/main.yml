@@ -1,0 +1,56 @@
+---
+# defaults file for zdls_rx2540_v_deploy
+
+# Base packages to be installed
+base_packages_1:
+  - nfs-common
+  - cachefilesd
+  - smartmontools
+  - freeipmi
+  - unzip
+  - build-essential
+
+base_packages_2:
+  - libsnmp-dev
+  - bridge-utils
+  - ledmon
+  - dump
+  - libfontconfig1
+
+# Docker packages to be installed
+docker_packages:
+  - docker-ce
+  - nvidia-container-toolkit
+
+
+# Mellanox tools to be installed
+mlx_tools_pkg: "mft-4.11.0-103-x86_64-deb.tgz"
+mlx_tools_dir: "{{ mlx_tools_pkg | regex_replace('.tgz') }}"
+
+# NTP server to be used for NTP configuration
+ntp_server: 'time.google.com'
+
+# Volumes to be mounted
+mountpoints:
+  - {name: "datafg01", path: "/raid", src: "{{ host_ip_info[inventory_hostname]['defmountlif'] }}:/datafg01", fstype: "nfs" } 
+
+# 
+host_ip_info:
+  zdlsserver-dl03:
+    data_ip1: '192.168.91.151'
+    data_ip2: '192.168.92.151'
+    user_ip1: '192.168.10.10'
+    user_ip2: '10.24.78.73'
+    defmountlif: '192.168.91.152'
+    altmountlif: '192.168.92.152'
+  zdlsserver-dl04:
+    data_ip1: '192.168.91.152'
+    data_ip2: '192.168.92.152'
+    user_ip1: '192.168.10.10'
+    user_ip2: '10.24.78.74'
+    defmountlif: '192.168.92.152'
+    altmountlif: '192.168.91.152'
+
+# not confirmed the svrtype is working or not.
+# svrtype: "{{ ansible_facts['product_name'] | regex_search('(DGX-.)') }}"
+svrtype: 'rx2540m5'

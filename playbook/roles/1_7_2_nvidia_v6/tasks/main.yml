@@ -1,0 +1,82 @@
+---
+- name: begin role
+  debug: msg="1_7_2  install nvidia tesla driver"
+
+# ---------------------------------------------------------
+# 1-7-2  install nvidia tesla driver
+# ---------------------------------------------------------
+- name: libc6_dev_install
+  apt:
+    allow_unauthenticated: yes
+    pkg: 
+    - build-essential
+    - linux-libc-dev
+  tags: libc6_dev_install
+
+
+- name: nvidia_driver
+  command: 
+    chdir: /home/zdlsadmin/tmp/NVIDIA
+    cmd: sh ./NVIDIA-Linux-x86_64-450.80.02.run -silent
+  tags: nvidia_driver
+
+#- name: dcgm_install
+#  command: 
+#    chdir: /home/zdlsadmin/tmp/NVIDIA
+#    cmd: dpkg -i datacenter-gpu-manager_1.7.2_amd64.deb
+#  tags: dcgm_install
+
+- name: install_m4
+  apt:
+    name: m4
+    allow_unauthenticated: yes
+  tags: install_m4
+
+- name: nvidia_persistence_unzip
+  unarchive:
+    src: nvidia-persistenced-master.zip
+    dest: /home/zdlsadmin/tmp/NVIDIA/
+  tags: nvidia_persistence_unzip
+
+- name: nvidia_persistence_build
+  make:
+    chdir: /home/zdlsadmin/tmp/NVIDIA/nvidia-persistenced-master/
+    target: install
+  tags: nvidia_persistence_build,nvidia_persistence_unzip
+
+- name: nvidia_persistence_install
+  command:
+    chdir: /home/zdlsadmin/tmp/NVIDIA/nvidia-persistenced-master/init/
+    cmd: ./install.sh systemd
+  tags: nvidia_persistence_install,nvidia_persistence_unzip
+
+- name: create_blacklist1
+  shell: 
+    cmd: echo "blacklist nouveau" >  /etc/modprobe.d/blacklist-nouveau.conf
+  tags: create_blacklist1
+
+- name: create_blacklist2
+  shell: 
+    cmd: echo "options nouveau modeset=0" >>  /etc/modprobe.d/blacklist-nouveau.conf
+  tags: create_blacklist2
+
+- name: update-initramfs
+  command: update-initramfs -u
+  tags: update-initramfs
+
+- name: update-grub
+  command: update-grub
+  tags: update-grub
+
+- name: reboot_server
+  reboot:
+    reboot_timeout: 600
+  tags: reboot_server
+
+- name: enable_persistenced
+  command: systemctl enable nvidia-persistenced
+  tags: enable_persistenced
+
+- name: start_persistenced
+  command: systemctl start nvidia-persistenced
+  tags: start_persistenced

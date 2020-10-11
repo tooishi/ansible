@@ -1,0 +1,13 @@
+---
+# Override default vars for AFF/FAS clusters here
+oishi: test
+# ONTAP cluster hostname
+netapp_hostname: "10.24.78.198"
+
+# Cluster admin login details
+netapp_username: admin
+netapp_password: password0
+
+# Cluster SVM details
+cluster_svm: A220
+

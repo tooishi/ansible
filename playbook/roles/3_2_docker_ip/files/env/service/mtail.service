@@ -1,0 +1,15 @@
+[Unit]
+Description=mtail Service
+After=rsyslog.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/mtail -progs /etc/exporter.d/mtail \
+                               -logs /var/log/syslog \
+                               -poll_interval 60s \
+                               -port 3903
+PrivateTmp=false
+
+[Install]
+WantedBy=multi-user.target
+

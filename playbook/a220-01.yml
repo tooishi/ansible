@@ -1,0 +1,4 @@
+- name: deploy_a220-01
+  hosts: localhost
+  roles:
+    - role: a220_create

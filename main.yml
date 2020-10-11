@@ -1,0 +1,23 @@
+- name: main zdls 200 servers
+  hosts: zdls_200_servers
+  become: true
+  become_method: sudo
+  gather_facts: true
+
+- import_playbook: playbook/playbook_zdls_200.yml
+
+- name: main zdls 300 servers
+  hosts: zdls_300_servers
+  become: true
+  become_method: sudo
+  gather_facts: true
+
+- import_playbook: playbook/playbook_zdls_300.yml
+
+#- name: "Zinrai Reference : ONTAP/AFF Cluster"
+#  hosts: a220s
+#  remote_user: admin
+#  gather_facts: false
+#  vars_files:
+#    - a220_vars.yml
+#- import_playbook: playbook/a220-01.yml

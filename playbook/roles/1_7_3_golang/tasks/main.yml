@@ -1,0 +1,39 @@
+---
+- name: begin rol
+  debug: msg="1_7_3  install golang"
+  
+# ---------------------------------------------------------
+# 1-7-3  install golang
+# ---------------------------------------------------------
+- name: golang_copy
+  copy:
+    src: ./other
+    dest: /home/zdlsadmin/tmp
+  tags: golang_copy
+
+- name: golang
+  command: 
+    chdir: /home/zdlsadmin/tmp/other
+    cmd: tar -C /usr/local -xzf go1.14.3.linux-amd64.tar.gz
+  tags: golang
+
+- name: env_arg1
+#  shell: echo "PATH=$PATH:/usr/local/go/bin" >> /root/.bashrc
+  lineinfile:
+    path: /root/.bashrc
+    line: 'PATH=$PATH:/usr/local/go/bin'
+  tags: env_arg1
+  
+- name: env_arg2
+#  shell: echo "GOPATH=/root/go" >> /root/.bashrc
+  lineinfile:
+    path: /root/.bashrc
+    line: 'GOPATH=/root/go'
+  tags: env_arg2
+
+- name: mkdir_go
+  file:
+    path: /root/go
+    state: directory
+  tags: mkdir_go
+

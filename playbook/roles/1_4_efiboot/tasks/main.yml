@@ -1,0 +1,35 @@
+---
+- name: begin role
+  debug: msg="1_4 back-up the boot loader to sdb1"
+
+# ---------------------------------------------------------
+# 1-4 back-up the boot loader to sdb1 
+# ---------------------------------------------------------
+- name: mkfs
+  command: mkfs.fat -F32 /dev/sdb1
+  tags: mkfs
+  
+- name: umount_current_boot_efi
+  command: umount /boot/efi
+  tags: umount_boot_efi_sda1
+
+- name: mount_backup_partition
+  command: mount /dev/sdb1 /boot/efi
+  tags: mount_sdb1
+
+- name: grub-install
+  command: grub-install --target=x86_64-efi --efi-directory=/boot/efi
+  tags: grub-install
+  
+- name: umount_current_boot_efi
+  command: umount /boot/efi
+  tags: umount_boot_efi_sdb1
+
+- name: mount_backup_partition
+  command: mount /dev/sda1 /boot/efi
+  tags: mount_sda1
+
+- name: add_boot_entry
+  command: efibootmgr --create --disk /dev/sdb --label "ubuntu redundancy" --loader "\\EFI\ubuntu\\shimx64.efi"
+  tags: add_boot_entry
+

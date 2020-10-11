@@ -1,0 +1,21 @@
+all:
+  hosts:
+    zdlsserver-110:
+    zdlsserver-112:
+    zdlsserver-dl02:
+    zdlsserver-dl03:
+    zdlsserver-dl04:
+    zdlsserver-gx01:
+    zdlsserver-gx02:
+    zdlsserver-gx03:
+    zdlsserver-gx04:
+    gx2460m1-01:
+    a220-01:
+  children:
+    zdls_200_servers:
+      hosts:
+    zdls_300_servers:
+      hosts:
+        gx2460m1-01:
+    a220s:
+      hosts:

@@ -1,0 +1,7 @@
+---
+# Override default vars for RX2540M5(V100S) servers here
+
+# Volumes to be mounted
+mountpoints:
+  # Uncomment the below lines if you are executing this role in conjunction with the 'na_ontap_ai_aff_deploy' role and want to mount the test NFS volumes that are created by default.
+  - {name: "raid", path: "/raid", src: "{{ host_ip_info[inventory_hostname]['defmountlif'] }}:/datafg01", fstype: "nfs" } 

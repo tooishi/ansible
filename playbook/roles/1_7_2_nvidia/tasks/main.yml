@@ -1,0 +1,51 @@
+---
+- name: begin role
+  debug: msg="1_7_2  install nvidia tesla driver"
+
+# ---------------------------------------------------------
+# 1-7-2  install nvidia tesla driver
+# ---------------------------------------------------------
+#- name: libc6_dev_install
+#  apt:
+#    allow_unauthenticated: yes
+#    pkg: 
+#    - build-essential
+#    - linux-libc-dev
+#  tags: libc6_dev_install
+#
+#
+- name: nvidia_driver
+  command: 
+    chdir: /home/zdlsadmin/tmp/NVIDIA
+    cmd: sh ./NVIDIA-Linux-x86_64-440.64.00.run -silent
+  tags: nvidia_driver
+
+- name: dcgm_install
+  command: 
+    chdir: /home/zdlsadmin/tmp/NVIDIA
+    cmd: dpkg -i datacenter-gpu-manager_1.7.2_amd64.deb
+  tags: dcgm_install
+
+- name: create_blacklist1
+  shell: 
+    cmd: echo "blacklist nouveau" >  /etc/modprobe.d/blacklist-nouveau.conf
+  tags: create_blacklist1
+
+- name: create_blacklist2
+  shell: 
+    cmd: echo "options nouveau modeset=0" >>  /etc/modprobe.d/blacklist-nouveau.conf
+  tags: create_blacklist2
+
+- name: update-initramfs
+  command: update-initramfs -u
+  tags: update-initramfs
+
+- name: update-grub
+  command: update-grub
+  tags: update-grub
+
+- name: reboot_server
+  reboot:
+    reboot_timeout: 600
+  tags: reboot_server
+

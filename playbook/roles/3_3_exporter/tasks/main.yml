@@ -1,0 +1,359 @@
+---
+- name: begin role
+  debug: msg="3_3 exporter"
+  
+# ---------------------------------------------------------
+# 3_3_1  create expoter directory
+# ---------------------------------------------------------
+- name: create_expoter_dir
+  file:
+    path: /run/prometheus
+    state: directory
+    mode: '0777'
+  tags: create_expoter_dir
+
+- name: create_prometheus_conf
+  lineinfile: 
+    path: /etc/tmpfiles.d/prometheus.conf
+    line: 'd /run/prometheus 0777 root root'
+    create: yes
+  tags: create_prometheus_conf
+
+# ---------------------------------------------------------
+# 3_3_2  config_node_exporter
+# ---------------------------------------------------------
+- name: copy_service_file_1
+  copy:
+    src: /home/zdlsadmin/tmp/env/service/node_exporter.service
+    dest: /etc/systemd/system/node_exporter.service
+    mode: preserve
+    remote_src: yes
+  tags: copy_service_file_1
+
+- name: copy_smart_file_2_1_1
+  copy:
+    src: /home/zdlsadmin/tmp/env/smartmontools/smartmon
+    dest: /etc/cron.d/smartmon
+    remote_src: yes
+  tags: copy_smart_file_2_1_1
+
+- name: copy_smart_file_2_1_2
+  copy:
+    src: /home/zdlsadmin/tmp/env/smartmontools/smartmon.sh
+    dest: /etc/exporter.d/smartmon.sh
+    remote_src: yes
+    mode: '0744'
+  tags: copy_smart_file_2_1_2
+
+- name: copy_smart_file_2_2_1
+  copy:
+    src: /home/zdlsadmin/tmp/env/smartmontools/md_info_detail
+    dest: /etc/cron.d/md_info_detail
+    remote_src: yes
+  tags: copy_smart_file_2_2_1
+
+- name: copy_smart_file_2_2_2
+  copy:
+    src: /home/zdlsadmin/tmp/env/smartmontools/md_info_detail.sh
+    dest: /etc/exporter.d/md_info_detail.sh
+    remote_src: yes
+    mode: '0744'
+  tags: copy_smart_file_2_2_2
+
+- name: daemon_reload_3_1
+  command: systemctl daemon-reload
+  tags: daemon_reload_3_1
+
+- name: start_node_exporter_3_2
+  command: systemctl start node_exporter
+  tags: start_node_exporter_3_2
+
+
+# ---------------------------------------------------------
+# 3_3_3  config_ipmi_exporter
+# ---------------------------------------------------------
+- name: copy_service_file_3_3_3_1_1
+  copy:
+    src: /home/zdlsadmin/tmp/env/yml/gx2570_ipmi.yml
+    dest: /etc/exporter.d/ipmi.yml
+    remote_src: yes
+    mode: '0744'
+  when: ansible_product_name == 'PRIMERGY GX2570 M5'
+    
+  tags: copy_service_file_3_3_3_1_1
+
+- name: copy_service_file_3_3_3_1_2
+  copy:
+    src: /home/zdlsadmin/tmp/env/yml/rx2540_ipmi.yml
+    dest: /etc/exporter.d/ipmi.yml
+    remote_src: yes
+    mode: '0744'
+  when: ansible_product_name == 'PRIMERGY RX2540 M5'
+    
+  tags: copy_service_file_3_3_3_1_2
+
+- name: copy_service_file_3_3_3_2
+  copy:
+    src: /home/zdlsadmin/tmp/env/service/ipmi_exporter.service
+    dest: /etc/systemd/system/ipmi_exporter.service
+    mode: preserve
+    remote_src: yes
+    
+  tags: copy_service_file_3_3_3_2
+
+- name: daemon_reload_3_3_3_3_1
+  command: systemctl daemon-reload
+  tags: daemon_reload_3_3_3_3_1
+
+- name: start_ipmi_exporter_3_3_3_3_2
+  command: systemctl start ipmi_exporter
+  tags: start_ipmi_exporter_3_3_3_3_2
+
+
+# ---------------------------------------------------------
+# 3_3_4  config_snmp_exporter
+# ---------------------------------------------------------
+- name: copy_service_file_3_3_4_1
+  copy:
+    src: /home/zdlsadmin/tmp/env/yml/snmp.yml
+    dest: /etc/exporter.d/snmp.yml
+    remote_src: yes
+    mode: '0744'
+    
+  tags: copy_service_file_3_3_4_1
+
+- name: copy_service_file_3_3_4_2
+  copy:
+    src: /home/zdlsadmin/tmp/env/service/snmp_exporter.service
+    dest: /etc/systemd/system/snmp_exporter.service
+    mode: preserve
+    remote_src: yes
+    
+  tags: copy_service_file_3_3_4_2
+
+- name: daemon_reload_3_3_4_3_1
+  command: systemctl daemon-reload
+  tags: daemon_reload_3_3_4_3_1
+
+- name: start_snmp_exporter_3_3_4_3_2
+  command: systemctl start snmp_exporter
+  tags: start_snmp_exporter_3_3_4_3_2
+
+
+# ---------------------------------------------------------
+# 3_3_5  config_mtail_exporter
+# ---------------------------------------------------------
+- name: copy_service_file_3_3_5_1
+  copy:
+    src: /home/zdlsadmin/tmp/env/service/mtail.service
+    dest: /etc/systemd/system/mtail.service
+    mode: preserve
+    remote_src: yes
+    
+  tags: copy_service_file_3_3_5_1
+
+- name: create_directory_3_3_5_2
+  file:
+    path: /etc/exporter.d/mtail
+    state: directory
+    mode: '0755'
+    
+  tags: create_directory_3_3_5_2
+
+- name: daemon_reload_3_3_5_2_1
+  command: systemctl daemon-reload
+  tags: daemon_reload_3_3_5_2_1
+
+- name: start_mtail_exporter_3_3_5_2_2
+  command: systemctl start mtail
+  tags: start_mtail_exporter_3_3_5_2_2
+
+
+# ---------------------------------------------------------
+# 3_3_6  config_alertmanager
+# ---------------------------------------------------------
+- name: create_directory_3_3_6_1_1
+  file:
+    path: /etc/alertmanager/rules.d
+    state: directory
+    mode: '0755'
+    
+  tags: create_directory_3_3_6_1_1
+
+- name: create_directory_3_3_6_1_2
+  file:
+    path: /etc/alertmanager/data
+    state: directory
+    mode: '0755'
+    
+  tags: create_directory_3_3_6_1_2
+
+- name: copy_service_file_3_3_6_2
+  copy:
+    src: /home/zdlsadmin/tmp/env/alert_rule/exporter_alert.rules
+    dest: /etc/alertmanager/rules.d/exporter_alert.rules
+    remote_src: yes
+    mode: '0644'
+    
+  tags: copy_service_file_3_3_6_2
+
+- name: copy_service_file_3_3_6_3
+  copy:
+    src: /home/zdlsadmin/tmp/env/yml/alertmanager.yml
+    dest: /etc/alertmanager/alertmanager.yml
+    remote_src: yes
+    mode: '0644'
+    
+  tags: copy_service_file_3_3_6_3
+
+- name: copy_service_file_3_3_6_4
+  copy:
+    src: /home/zdlsadmin/tmp/env/service/alertmanager.service
+    dest: /etc/systemd/system/alertmanager.service
+    mode: preserve
+    remote_src: yes
+    
+  tags: copy_service_file_3_3_6_4
+
+- name: daemon_reload_3_3_6_5_1
+  command: systemctl daemon-reload
+  tags: daemon_reload_3_3_6_5_1
+
+- name: start_alertmanager_3_3_6_5_2
+  command: systemctl start alertmanager
+  tags: start_alertmanager_3_3_6_5_2
+
+- name: stop_alertmanager_3_3_6_5_3
+  command: systemctl stop alertmanager
+  tags: stop_alertmanager_3_3_6_5_3
+
+# ---------------------------------------------------------
+# 3_3_7  config_prometheus
+# ---------------------------------------------------------
+- name: create_directory_3_3_7_1_1
+  file:
+    path: /etc/prometheus
+    state: directory
+    mode: '0755'
+    
+  tags: create_directory_3_3_7_1_1
+
+- name: create_directory_3_3_7_1_2
+  file:
+    path: /prometheus
+    state: directory
+    mode: '0777'
+    
+  tags: create_directory_3_3_7_1_2
+
+- name: create_directory_3_3_7_1_3
+  file:
+    path: /prometheus/data
+    state: directory
+    mode: '0777'
+    
+  tags: create_directory_3_3_7_1_3
+
+- name: copy_service_file_3_3_7_2
+  copy:
+    src: /home/zdlsadmin/tmp/env/yml/prometheus.yml
+    dest: /etc/prometheus/prometheus.yml
+    remote_src: yes
+    mode: '0744'
+    
+  tags: copy_service_file_3_3_7_2
+
+- name: create_directory_3_3_7_3
+  file:
+    path: /var/log/metrics
+    state: directory
+    mode: '0777'
+    
+  tags: create_directory_3_3_7_3
+
+#- name: start_prometheus_container_3_3_7_4
+#  docker_container:
+#    detach: yes
+#    ports:
+#     - "9090:9090"
+#    restart: yes
+#    restart_policy: always
+#    name: prometheus
+#    devices:
+#     - "/etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro"
+#     - "/etc/alertmanager/rules.d:/etc/alertmanager/rules.d:ro"
+#     - "/var/log/metrics:/prometheus/data:rw"
+#     - "/etc/localtime:/etc/localtime:ro"
+#    image: prom/prometheus:v2.19.0
+#    state: started
+#    env:
+#        config.file: "/etc/prometheus/prometheus.yml"
+#        storage.tsdb.path: "/prometheus/data"
+#        web.console.libraries: "/usr/share/prometheus/console_libraries"
+#        web.console.templates: "/usr/share/prometheus/consoles"
+#
+#  tags: start_prometheus_container_3_3_7_4
+- name: start_prometheus_container_3_3_7_4
+  command: docker run -d -p 9090:9090 --restart=always --name prometheus -v /etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro -v /etc/alertmanager/rules.d:/etc/alertmanager/rules.d:ro -v /var/log/metrics:/prometheus/data:rw -v /etc/localtime:/etc/localtime:ro prom/prometheus:v2.19.0 --config.file="/etc/prometheus/prometheus.yml" --storage.tsdb.path="/prometheus/data" --web.console.libraries="/usr/share/prometheus/console_libraries" --web.console.templates="/usr/share/prometheus/consoles"
+
+  tags: start_prometheus_container_3_3_7_4
+
+- name: stop_prometheus_container_3_3_7_6
+#  docker_container:
+#    name: prometheus
+#    state: stopped
+  command: docker stop prometheus
+
+  tags: stop_prometheus_container_3_3_7_6
+
+
+# ---------------------------------------------------------
+# 3_3_8 config_grafana
+# --------------------------------------------------------
+- name: edit_grafana_ini_3_3_8_1_1
+  lineinfile:
+    path: /etc/grafana/grafana.ini
+    regexp: '^;protocol = http'
+    line: '^protocol = https'
+  tags: edit_grafana_ini_3_3_8_1_1
+
+- name: edit_grafana_ini_3_3_8_1_2
+  lineinfile:
+    path: /etc/grafana/grafana.ini
+    regexp: '^;http_addr ='
+    line: '^http_addr = 192.168.1.10'
+  tags: edit_grafana_ini_3_3_8_1_2
+
+- name: edit_grafana_ini_3_3_8_1_3
+  lineinfile:
+    path: /etc/grafana/grafana.ini
+    regexp: '^;http_port = 3000'
+    line: '^http_port = 3000'
+  tags: edit_grafana_ini_3_3_8_1_3
+
+- name: edit_grafana_ini_3_3_8_1_4
+  lineinfile:
+    path: /etc/grafana/grafana.ini
+    regexp: '^;cert_file ='
+    line: '^cert_file = /etc/certs.d/zdlsserver.crt'
+  tags: edit_grafana_ini_3_3_8_1_4
+
+- name: edit_grafana_ini_3_3_8_1_5
+  lineinfile:
+    path: /etc/grafana/grafana.ini
+    regexp: '^;cert_key ='
+    line: '^cert_key = /etc/certs.d/zdlsserver.key'
+  tags: edit_grafana_ini_3_3_8_1_5
+
+- name: daemon_reload_3_3_8_2_1
+  command: systemctl daemon-reload
+  tags: daemon_reload_3_3_8_2_1
+
+- name: start_alertmanager_3_3_8_2_2
+  command: systemctl start grafana-server
+  tags: start_alertmanager_3_3_8_2_2
+
+
+
+
+

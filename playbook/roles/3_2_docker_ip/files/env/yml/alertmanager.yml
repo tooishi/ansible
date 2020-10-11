@@ -1,0 +1,29 @@
+global:
+  smtp_smarthost: 'smtp.mail.server:25'
+  smtp_require_tls: false
+  smtp_from: 'zdlsadmin@zdlsserver.fj'
+
+route:
+  receiver: 'default'
+  group_by: ['alertname']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 3h
+  routes:
+  - match_re:
+      service: ^(foo1|foo2|baz)$
+    receiver: default
+  - match:
+      service: files
+    receiver: default
+receivers:
+- name: 'default'
+  email_configs:
+  - to: ' zdlsadmin@zdlsserver.zdls'
+inhibit_rules:
+- source_match:
+    severity: 'critical'
+  target_match:
+    severity: 'warning'
+  equal: ['alertname']
+

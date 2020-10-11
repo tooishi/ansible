@@ -1,0 +1,8 @@
+modules:
+  zdlsserver-iRMC:
+    user: "admin"
+    pass: "admin"
+    driver: "LAN_2_0"
+    privilege: "user"
+
+    exclude_sensor_ids:

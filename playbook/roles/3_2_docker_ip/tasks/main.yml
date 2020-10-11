@@ -1,0 +1,20 @@
+---
+- name: begin role
+  debug: msg="3_2 docker ip"
+  
+# ---------------------------------------------------------
+# 3_2  docker ip
+# ---------------------------------------------------------
+- name: copy_env_files
+  copy:
+    src: ./env
+    dest: /home/zdlsadmin/tmp
+  tags: copy_env_files
+
+- name: copy_the_file
+  copy: 
+    src: /home/zdlsadmin/tmp/env/docker/daemon.json
+    dest: /etc/docker/daemon.json
+    remote_src: yes
+    mode: '0744'
+  tags: copy_the_file

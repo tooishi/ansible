@@ -1,0 +1,2 @@
+* * * * * root bash /etc/exporter.d/md_info_detail.sh > /run/prometheus/md_info_detail.prom
+

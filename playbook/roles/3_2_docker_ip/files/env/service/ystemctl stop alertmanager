@@ -1,0 +1,17 @@
+[0;1;32m●[0m alertmanager.service - Alertmanager for Prometheus
+   Loaded: loaded (/etc/systemd/system/alertmanager.service; disabled; vendor preset: enabled)
+   Active: [0;1;32mactive (running)[0m since Mon 2020-06-22 21:46:50 UTC; 4s ago
+ Main PID: 5176 (alertmanager)
+    Tasks: 32 (limit: 9830)
+   CGroup: /system.slice/alertmanager.service
+           └─5176 /usr/local/bin/alertmanager --config.file=/etc/alertmanager/alertmanager.yml --storage.path=/etc/alertmanager/data --log.level=info --web.listen-address=:9093
+
+Jun 22 21:46:50 zdlsserver systemd[1]: Started Alertmanager for Prometheus.
+Jun 22 21:46:50 zdlsserver alertmanager[5176]: level=info ts=2020-06-22T21:46:50.807Z caller=main.go:231 msg="Starting Alertmanager" version="(version=0.20.0, branch=HEAD, revision=f74be0400a6243d10bb53812d6fa408ad71ff32d)"
+Jun 22 21:46:50 zdlsserver alertmanager[5176]: level=info ts=2020-06-22T21:46:50.807Z caller=main.go:232 build_context="(go=go1.13.5, user=root@00c3106655f8, date=20191211-14:13:14)"
+Jun 22 21:46:50 zdlsserver alertmanager[5176]: level=info ts=2020-06-22T21:46:50.813Z caller=cluster.go:161 component=cluster msg="setting advertise address explicitly" addr=10.24.78.73 port=9094
+Jun 22 21:46:50 zdlsserver alertmanager[5176]: level=info ts=2020-06-22T21:46:50.817Z caller=cluster.go:623 component=cluster msg="Waiting for gossip to settle..." interval=2s
+Jun 22 21:46:50 zdlsserver alertmanager[5176]: level=info ts=2020-06-22T21:46:50.880Z caller=coordinator.go:119 component=configuration msg="Loading configuration file" file=/etc/alertmanager/alertmanager.yml
+Jun 22 21:46:50 zdlsserver alertmanager[5176]: level=info ts=2020-06-22T21:46:50.881Z caller=coordinator.go:131 component=configuration msg="Completed loading of configuration file" file=/etc/alertmanager/alertmanager.yml
+Jun 22 21:46:50 zdlsserver alertmanager[5176]: level=info ts=2020-06-22T21:46:50.890Z caller=main.go:497 msg=Listening address=:9093
+Jun 22 21:46:52 zdlsserver alertmanager[5176]: level=info ts=2020-06-22T21:46:52.818Z caller=cluster.go:648 component=cluster msg="gossip not settled" polls=0 before=0 now=1 elapsed=2.000082013s

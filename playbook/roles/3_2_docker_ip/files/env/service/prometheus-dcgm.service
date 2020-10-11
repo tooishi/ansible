@@ -1,0 +1,14 @@
+[Unit]
+Description=Prometheus DCGM exporter
+Wants=dcgm.service
+After=dcgm.service nvidia-persistenced.service
+Before=node_exporter.service
+
+[Service]
+Type=simple
+Restart=always
+ExecStart=/usr/bin/dcgm-exporter
+
+[Install]
+WantedBy=multi-user.target
+

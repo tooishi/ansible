@@ -1,0 +1,16 @@
+[Unit]
+Description=Alertmanager for Prometheus
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/alertmanager --config.file="/etc/alertmanager/alertmanager.yml" \
+                                      --storage.path="/etc/alertmanager/data" \
+                                      --log.level=info \
+                                      --web.listen-address=":9093"
+PrivateTmp=true
+WorkingDirectory=/etc/alertmanager
+
+[Install]
+WantedBy=multi-user.target
+

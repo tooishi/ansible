@@ -1,0 +1,14 @@
+[Unit]
+Description=SNMP exporter
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/snmp_exporter --config.file="/etc/exporter.d/snmp.yml" \
+                                       --web.listen-address=":9116" \
+                                       --log.level="info"
+PrivateTmp=false
+
+[Install]
+WantedBy=multi-user.target
+

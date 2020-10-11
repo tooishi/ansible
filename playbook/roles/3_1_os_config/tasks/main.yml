@@ -1,0 +1,78 @@
+---
+- name: begin role
+  debug: msg="3_1 os configuration setting"
+  
+# ---------------------------------------------------------
+# 3_1_1  create SSL Certificate
+# ---------------------------------------------------------
+- name: create_certs_dir
+  file:
+    path: /etc/certs.d
+    state: directory
+  tags: create_certs_dir
+
+#- name: create_ssl
+#  expect: 
+#    chdir: /etc/certs.d
+#    command: openssl req -newkey rsa:4096 -nodes -sha256 -keyout zdlsserver.key -x509 -days 3650 -out zdlsserver.crt
+#    responses:
+#      "Country Name \\(2 letter code\\) \\[AU\\]:" : "JP"
+#      "State or Province Name \\(full name\\) \\[Some-State\\]:" : "Kanagawa"
+#      "Locality Name \(eg, city\) \\[\\]:" : "Kawasaki"
+#      "Organization Name \\(eg, company\\) \\[Internet Widgits Pty Ltd\\]:" : "Fujitsu Ltd"
+#      "Organizational Unit Name \\(eg, section\\) \[\]:" : "Zinrai Deep Learning System"
+#      "Common Name \\(e.g. server FQDN or YOUR name\\) \\[\\]:" : "zdlsserver"
+#      "Email Address \\[\\]:" : ""
+#  tags: create_ssl
+#
+#- name: chmod_certs_crt
+#  file: 
+#    path: /etc/certs.d/zdlsserver.crt
+#    mode: '0644'
+#  tags: chmod_certs_crt
+#
+#- name: chmod_certs_key
+#  file: 
+#    path: /etc/certs.d/zdlsserver.key
+#    mode: '0644'
+#  tags: chmod_certs_key
+
+# ---------------------------------------------------------
+# 3_1_2  kdump configuration
+# ---------------------------------------------------------
+- name: kdump_tools_cfg
+  lineinfile:
+    path: /etc/default/grub.d/kdump-tools.cfg
+    state: present
+    regexp: '^GRUB_CMDLINE'
+    line: 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT crashkernel=512M,low crashkernel=1024M,high"'
+  tags: kdump_tools_cfg
+
+- name: sysctl_conf
+  lineinfile:
+    path: /etc/sysctl.conf
+    state: present
+    insertafter:
+    line: '{{ item.line }}'
+  with_items:
+  - line: 'kernel.panic_on_oops = 1'
+  - line: 'kernel.hung_task_panic = 1'
+  - line: 'kernel.panic_on_io_nmi = 1'
+  - line: 'kernel.panic_on_unrecovered_nmi = 1'
+  - line: 'vm.panic_on_oom = 1'
+  - line: 'kernel.panic = 30'
+  tags: sysctl_conf
+
+- name: initramfs
+  command: update-initramfs -u
+  tags: initramfs
+
+- name: update_grub
+  command: update-grub
+  tags: update_grub
+
+- name: reboot_server
+  reboot:
+    reboot_timeout: 600
+  tags: reboot_server
+

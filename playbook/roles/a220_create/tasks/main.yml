@@ -1,0 +1,239 @@
+---
+- name: include specific vars
+  include_vars: a220_vars.yml
+
+- name: a220-01_create
+  debug: var=netapp_username
+# ---------------------------------------------------------
+# 1: a220_1_ifgrp
+# ---------------------------------------------------------
+- name: Create interface groups
+  na_ontap_net_ifgrp:
+    hostname: "{{ netapp_hostname }}"
+    username: "{{ netapp_username }}"
+    password: "{{ netapp_password }}"
+    state: present
+    distribution_function: port
+#    mode: multimode_lacp
+    mode: multimode
+    name: "{{ item.grpname }}"
+    node: "{{ item.node }}"
+    ports: ["{{ item.port1 }}","{{ item.port2 }}"]
+  with_items:
+    - "{{ ifgrps }}" 
+  tags: ontap_ifgrp
+
+- name: Add ports to ifgrps
+  na_ontap_net_ifgrp:
+    hostname: "{{ netapp_hostname }}"
+    username: "{{ netapp_username }}"
+    password: "{{ netapp_password }}"
+    state: present
+    distribution_function: port
+#    mode: multimode_lacp
+    mode: multimode
+    name: "{{ item.grpname }}"
+    node: "{{ item.node }}"
+    port: "{{ item.port2 }}"
+  with_items:
+    - "{{ ifgrps }}" 
+  tags: ontap_ifgrp_addports
+
+
+# ---------------------------------------------------------
+# 1_2: a220_1_2_mtu_ifgrp
+# ---------------------------------------------------------
+- name: Set MTU on ifgrps
+  na_ontap_net_port:
+    hostname: "{{ netapp_hostname }}"
+    username: "{{ netapp_username }}"
+    password: "{{ netapp_password }}"
+    state: present
+    mtu: "{{ item.mtu }}"
+    node: "{{ item.node }}"
+    port: "{{ item.grpname }}"
+  with_items:
+    - "{{ ifgrps }}"
+  tags: ontap_ifgrp_mtu
+
+
+# ---------------------------------------------------------
+# 2: a220_2_port_vlan
+# ---------------------------------------------------------
+- name: Create storage VLANs on ifgrp1
+  na_ontap_net_vlan:
+    hostname: "{{ netapp_hostname }}"
+    username: "{{ netapp_username }}"
+    password: "{{ netapp_password }}"
+    vlanid: "{{ item[0].id }}"
+    node: "{{ item[1].name }}"
+    parent_interface: "{{ item[1].ifgrp1 }}"
+  with_nested:
+    - "{{ storage_vlans }}"
+    - "{{ nodes }}"
+  tags: ontap_vlans
+
+# ---------------------------------------------------------
+# 3: a220_3_broadcast_domain default
+# ---------------------------------------------------------
+- name: create nfs_3111 broadcast domain
+  na_ontap_broadcast_domain:
+    state: present
+    hostname: "{{ netapp_hostname }}"
+    username: "{{ netapp_username }}"
+    password: "{{ netapp_password }}"
+    broadcast_domain: nfs_3111
+    mtu: "9000"
+    ipspace: Default
+    ports: "{{ ports_3111 }}"
+  tags: ontap_broadcast_domain_3111
+
+- name: create nfs_3112 broadcast domain
+  na_ontap_broadcast_domain:
+    state: present
+    hostname: "{{ netapp_hostname }}"
+    username: "{{ netapp_username }}"
+    password: "{{ netapp_password }}"
+    broadcast_domain: nfs_3112
+    mtu: "9000"
+    ipspace: Default
+    ports: "{{ ports_3112 }}"
+  tags: ontap_broadcast_domain_3112
+
+
+# ---------------------------------------------------------
+# 4: a220_4_create_aggregate  n1_data and n2_data
+# ---------------------------------------------------------
+- name: create_aggregates
+  na_ontap_aggregate:
+    state: present
+    hostname: "{{ netapp_hostname }}"
+    username: "{{ netapp_username }}"
+    password: "{{ netapp_password }}"
+    disk_count: "{{ item.diskcount }}"
+    nodes: "{{ item.node }}"
+    name: "{{ item.name }}"
+  with_items:
+    - "{{ storage_aggregates }}"
+  tags: create_aggregates
+
+
+# ---------------------------------------------------------
+# 5: a220_5_create_svm  ai_svm
+# ---------------------------------------------------------
+- name: Create data SVM with NFS protocol
+  na_ontap_svm:
+    hostname: "{{ netapp_hostname }}"
+    username: "{{ netapp_username }}"
+    password: "{{ netapp_password }}"
+    state: present
+    name: "{{ data_svm }}"
+    root_volume: "{{ data_svm_rootvol }}"
+    root_volume_aggregate: "{{ nodes[0].data_aggr }}"
+    root_volume_security_style: "unix"
+    allowed_protocols: "{{ allowed_protocols }}"
+    aggr_list: "{{ data_aggr_list }}"
+  tags: ontap_svm
+
+
+# ---------------------------------------------------------
+# 6: a220_6_nfs_create on ai_svm
+# ---------------------------------------------------------
+- name: change nfs status
+  na_ontap_nfs:
+    hostname: "{{ netapp_hostname }}"
+    username: "{{ netapp_username }}"
+    password: "{{ netapp_password }}"
+    state: present
+    service_state: started
+    vserver: "{{ data_svm }}"
+    nfsv3: enabled
+    tcp: enabled
+    udp: enabled
+  tags: ontap_nfs
+
+
+# ---------------------------------------------------------
+# 7: a220_7_export_policy ## NOTE!! remember the issue
+# ---------------------------------------------------------
+- name: Create export policy rules for default export policy
+  na_ontap_export_policy_rule:
+    hostname: "{{ netapp_hostname }}"
+    username: "{{ netapp_username }}"
+    password: "{{ netapp_password }}"
+    state: present
+    vserver: "{{ data_svm }}"
+    policy_name: default
+    client_match: "{{ item.clientmatch }}"
+    ro_rule: "{{ item.rorule }}"
+    rw_rule: "{{ item.rwrule }}"
+    protocol: "{{ item.protocol }}"
+    super_user_security: "{{ item.superuser }}"
+  with_items:
+    - "{{ exp_rules }}"
+  tags: ontap_export_policy_rules
+
+
+# ---------------------------------------------------------
+# 8: a220_8_lif
+# ---------------------------------------------------------
+- name: Create data LIFs
+  na_ontap_interface:
+    hostname: "{{ netapp_hostname }}"
+    username: "{{ netapp_username }}"
+    password: "{{ netapp_password }}"
+    state: present
+    vserver: "{{ data_svm }}"
+    interface_name: "{{ item.iname }}"
+    home_port: "{{ item.homeport }}"
+    home_node: "{{ item.homenode }}"
+    address: "{{ item.address }}"
+    netmask: "{{ item.netmask }}"
+    role: data
+    protocols: nfs
+  with_items:
+    - "{{ interfaces }}" 
+  tags: ontap_data_lifs
+
+
+# ---------------------------------------------------------
+# 9: a220_9_flex_volume testvol01
+# ---------------------------------------------------------
+- name: Create FlexVol data volumes
+  na_ontap_volume:
+    hostname: "{{ netapp_hostname }}"
+    username: "{{ netapp_username }}"
+    password: "{{ netapp_password }}"
+    state: present
+    name: "{{ item.vname }}"
+    size: "{{ item.size }}"
+    size_unit: "{{ item.size_unit }}"
+    vserver: "{{ data_svm }}"
+    aggregate_name: "{{ item.aggr }}"
+    junction_path: "{{ item.jpath }}"
+#    policy: "{{ new_export_policy_name }}"
+  with_items:
+    - "{{ flexvols }}"
+  tags: ontap_vol
+
+# ---------------------------------------------------------
+# 10: a220_10_flex_group testfg01
+# ---------------------------------------------------------
+- name: Create FlexGroup data volumes
+  na_ontap_volume:
+    hostname: "{{ netapp_hostname }}"
+    username: "{{ netapp_username }}"
+    password: "{{ netapp_password }}"
+    state: present
+    name: "{{ item.vname }}"
+    auto_provision_as: flexgroup
+    size: "{{ item.size }}"
+    size_unit: "{{ item.size_unit }}"
+    vserver: "{{ data_svm }}"
+#    aggregate_name: "{{ item.aggr }}"
+    junction_path: "{{ item.jpath }}"
+#    policy: "{{ new_export_policy_name }}"
+  with_items:
+    - "{{ flexgroups }}"
+  when: ansible_version.full is version('2.8.0', '>=')
+  tags: ontap_flexgroup

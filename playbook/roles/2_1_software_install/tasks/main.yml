@@ -1,0 +1,186 @@
+---
+- name: begin role
+  debug: msg="2_1 software install"
+  
+# ---------------------------------------------------------
+# 2-1-1  install docker-ce
+# ---------------------------------------------------------
+- name: docker-ce_nvidia_container_toolkit_install
+  apt:
+    allow_unauthenticated: yes
+    pkg:
+    - docker-ce
+    - nvidia-container-toolkit
+  tags: docker_install
+
+
+# ---------------------------------------------------------
+# 2-1-2   install prometheus
+# ---------------------------------------------------------
+- name: prometheus_copy
+  copy:
+    src: ./prometheus
+    dest: /home/zdlsadmin/tmp
+  tags: prometheus_copy
+
+- name: prometheus
+  shell: 
+    chdir: /home/zdlsadmin/tmp/prometheus
+    cmd: zcat prometheus.v2.19.0.tar.gz > prometheus.v2.19.0.tar
+  tags: prometheus
+
+- name: docker_load
+#  docker_image:
+#    name: prom/prometheus:v2.19.0
+#    load_path: /home/zdlsadmin/tmp/prometheus/prometheus.v2.19.0.tar
+#    source: load
+  shell: 
+    chdir: /home/zdlsadmin/tmp/prometheus
+    cmd: docker load < prometheus.v2.19.0.tar
+  tags: docker_load
+
+- name: alert_manager
+  command: 
+    chdir: /home/zdlsadmin/tmp/prometheus
+    cmd: tar zxf alertmanager-0.20.0.linux-amd64.tar.gz 
+  tags: alert_manager
+
+- name: module_copy_al
+  copy:
+    src: /home/zdlsadmin/tmp/prometheus/alertmanager-0.20.0.linux-amd64/alertmanager
+    dest: /usr/local/bin/
+    remote_src: yes
+    owner: root
+    group: root
+  tags: module_copy_al
+
+- name: module_copy_am
+  copy:
+    src: /home/zdlsadmin/tmp/prometheus/alertmanager-0.20.0.linux-amd64/amtool
+    dest: /usr/local/bin/
+    remote_src: yes
+    owner: root
+    group: root
+  tags: module_copy_am
+
+
+# ---------------------------------------------------------
+# 2-1-3   install packages
+# ---------------------------------------------------------
+
+- name: install_packages_1
+  apt:
+    name: "{{ base_packages_1 }}"
+    allow_unauthenticated: yes
+  tags: packages_1
+
+- name: fix_broken
+  command: apt --fix-broken --allow-unauthenticated -y install
+  tags: fix_broken
+
+- name: install_packages_2
+  apt:
+    name: "{{ base_packages_2 }}"
+    allow_unauthenticated: yes
+  tags: packages_2
+
+- name: iptables_persistent
+  command: apt install --allow-unauthenticated -y iptables-persistent
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+  tags: iptables_persistent
+
+- name: linux_crashdump
+  command: apt install --allow-unauthenticated -y linux-crashdump
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+  tags: linux_crashdump
+
+- name: grafana_install
+  command: dpkg -i /home/zdlsadmin/tmp/prometheus/grafana_7.0.3_amd64.deb
+  tags: grafana_install
+
+
+# ---------------------------------------------------------
+# 2-2-1   exporter dir
+# ---------------------------------------------------------
+- name: exporter_dir
+  file:
+    path: /etc/exporter.d
+    state: directory
+  tags: exporter_dir
+
+- name: exporters_copy
+  copy:
+    src: ./exporters
+    dest: /home/zdlsadmin/tmp
+  tags: exporters_copy
+
+
+# ---------------------------------------------------------
+# 2-2-2   node_exporter
+# ---------------------------------------------------------
+- name: node_exporter
+  command: 
+    chdir: /home/zdlsadmin/tmp/exporters
+    cmd: tar xvfz node_exporter-1.0.0.linux-amd64.tar.gz
+  tags: node_exporter
+
+- name: module_copy_ne
+  copy:
+    src: /home/zdlsadmin/tmp/exporters/node_exporter-1.0.0.linux-amd64/node_exporter
+    dest: /usr/local/bin/node_exporter
+    remote_src: yes
+    owner: root
+    group: root
+  tags: module_copy_ne
+
+# ---------------------------------------------------------
+# 2-2-3   ipmi_exporter
+# ---------------------------------------------------------
+- name: ipmi_exporter
+  command: 
+    chdir: /home/zdlsadmin/tmp/exporters
+    cmd: tar xvfz ipmi_exporter-v1.2.0.linux-amd64.tar.gz
+  tags: ipmi_exporter
+
+- name: module_copy_ie
+  copy:
+    src: /home/zdlsadmin/tmp/exporters/ipmi_exporter-v1.2.0.linux-amd64/ipmi_exporter
+    dest: /usr/local/bin/ipmi_exporter
+    remote_src: yes
+    owner: root
+    group: root
+  tags: module_copy_ie
+
+# ---------------------------------------------------------
+# 2-2-4   snmp_exporter
+# ---------------------------------------------------------
+- name: snmp_exporter
+  command: 
+    chdir: /home/zdlsadmin/tmp/exporters
+    cmd: tar xvfz snmp_exporter-0.18.0.linux-amd64.tar.gz
+  tags: snmp_exporter
+
+- name: module_copy_se
+  copy:
+    src: /home/zdlsadmin/tmp/exporters/snmp_exporter-0.18.0.linux-amd64/snmp_exporter
+    dest: /usr/local/bin/snmp_exporter
+    remote_src: yes
+    owner: root
+    group: root
+  tags: module_copy_se
+
+# ---------------------------------------------------------
+# 2-2-5   mtail
+# ---------------------------------------------------------
+- name: mtail
+  copy:
+    src: /home/zdlsadmin/tmp/exporters/mtail_v3.0.0-rc35_linux_amd64
+    dest: /usr/local/bin/mtail
+    remote_src: yes
+    owner: root
+    group: root
+    mode: 755
+  tags: mtail
+

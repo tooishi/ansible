@@ -1,0 +1,28 @@
+---
+- name: begin role
+  debug: msg="1_7_1  install gcc and make"
+
+# ---------------------------------------------------------
+# 1-7-1  install gcc and make
+# ---------------------------------------------------------
+- name: gcc8_base_install
+  command: dpkg -i /home/zdlsadmin/tmp/deb_files/packages/gcc-8-base_8.4.0-1ubuntu1_18.04_amd64.deb
+  tags: gcc8_base_install
+
+- name: libgcc8_install
+  command: dpkg -i /home/zdlsadmin/tmp/deb_files/packages/libgcc1_8.4.0-1ubuntu1_18.04_amd64.deb
+  tags: libgcc8_install
+
+- name: fix_broken
+  command: apt --fix-broken --allow-unauthenticated -y install
+  tags: fix_broken
+
+- name: gcc_make_install
+#  shell: apt install --allow-unauthenticated -y gcc make
+  apt:
+    allow_unauthenticated: yes
+    pkg:
+    - gcc
+    - make
+  tags: gcc_make_install
+

@@ -1,0 +1,16 @@
+- name: playbook_zdls_300
+  hosts: zdls_300_servers
+  roles:
+    - role: common
+    - role: 1_4_efiboot
+    - role: 1_5_hwclock
+    - role: 1_6_deploy_v6
+    - role: 1_7_1_gcc_make
+    - role: 1_7_2_nvidia_v6
+    - role: 1_7_3_golang_v6
+    - role: 2_1_software_install_v6
+    - role: 3_1_os_config
+    - role: 3_2_docker_ip
+    - role: 3_3_exporter
+    - role: 3_4_docker_images_v6
+    - role: 4_1_filter_tables

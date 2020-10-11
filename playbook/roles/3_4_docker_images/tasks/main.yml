@@ -1,0 +1,60 @@
+---
+- name: begin role
+  debug: msg="3_4 docker_image_copy"
+  
+# ---------------------------------------------------------
+# 3_4  docker_image_copy
+# ---------------------------------------------------------
+- name: docker_images_copy_3_4
+  copy:
+    src: ./
+    dest: /home/zdlsadmin/tmp/NGC_container
+  tags: docker_images_copy_3_4
+
+# ---------------------------------------------------------
+# 3_4_1  load_pytorch
+# ---------------------------------------------------------
+- name: zcat_pytorch_3_4_1_1
+  shell:
+    chdir: /home/zdlsadmin/tmp/NGC_container
+    cmd:  zcat pytorch.20.03-py3.tar.gz > pytorch.20.03-py3.tar
+  tags: zcat_pytorch_3_4_1_1
+
+- name: load_pytorch_3_4_1_2
+  shell:
+    chdir: /home/zdlsadmin/tmp/NGC_container
+    cmd:  docker load < pytorch.20.03-py3.tar
+  tags: load_pytorch_3_4_1_2
+
+
+# ---------------------------------------------------------
+# 3_4_2  load_tensorflow
+# ---------------------------------------------------------
+- name: zcat_tensorflow_3_4_2_1
+  shell:
+    chdir: /home/zdlsadmin/tmp/NGC_container
+    cmd:  zcat tensorflow.20.03-tf2-py3.tar.gz > tensorflow.20.03-tf2-py3.tar
+  tags: zcat_tensorflow_3_4_2_1
+
+- name: load_tensorflow_3_4_2_2
+  shell:
+    chdir: /home/zdlsadmin/tmp/NGC_container
+    cmd:  docker load < tensorflow.20.03-tf2-py3.tar
+  tags: load_tensorflow_3_4_2_2
+
+
+# ---------------------------------------------------------
+# 3_4_3  load_mxnet
+# ---------------------------------------------------------
+- name: zcat_mxnet_3_4_3_1
+  shell:
+    chdir: /home/zdlsadmin/tmp/NGC_container
+    cmd:  zcat mxnet.20.03-py3.tar.gz > mxnet.20.03-py3.tar
+  tags: zcat_mxnet_3_4_3_1
+
+- name: load_mxnet_3_4_3_2
+  shell:
+    chdir: /home/zdlsadmin/tmp/NGC_container
+    cmd:  docker load < mxnet.20.03-py3.tar
+  tags: load_mxnet_3_4_3_2
+

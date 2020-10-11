@@ -1,0 +1,87 @@
+---
+# defaults file for na_ontap_ai_aff_deploy
+
+# ---------------------------------------------------------
+# Data SVM details
+# ---------------------------------------------------------
+data_svm: ai_svm
+data_svm_rootvol: "{{data_svm}}_rootvol"
+allowed_protocols: nfs
+
+# ---------------------------------------------------------
+# LACP interface group details
+# ---------------------------------------------------------
+ifgrps:
+  - {grpname: a11a, node: n1, port1: e0c, port2: e0d, mtu: 9000}
+  - {grpname: a12a, node: n2, port1: e0c, port2: e0d, mtu: 9000}
+
+# ---------------------------------------------------------
+# Data interface/LIF details
+# ---------------------------------------------------------
+interfaces:
+  - {iname: nfs_01a, homeport: a11a-3111, homenode: n1, address: 192.168.11.11, netmask: 255.255.255.0}
+  - {iname: nfs_01b, homeport: a11a-3112, homenode: n1, address: 192.168.12.11, netmask: 255.255.255.0}
+  - {iname: nfs_02a, homeport: a12a-3111, homenode: n2, address: 192.168.11.12, netmask: 255.255.255.0}
+  - {iname: nfs_02b, homeport: a12a-3112, homenode: n2, address: 192.168.12.12, netmask: 255.255.255.0}
+
+
+# ---------------------------------------------------------
+# Storage VLAN details
+# ---------------------------------------------------------
+storage_vlans:
+  - {desc: nfs_vlan_01, id: 3111}
+  - {desc: nfs_vlan_02, id: 3112}
+
+
+# ---------------------------------------------------------
+# Cluster node details  
+# ---------------------------------------------------------
+nodes:
+  - {name: n1, ifgrp1: a11a, data_aggr: n1_data}
+  - {name: n2, ifgrp1: a12a, data_aggr: n2_data}
+
+# ---------------------------------------------------------
+# vlan ports details  
+# ---------------------------------------------------------
+# VLAN 3111 port details
+ports_3111: "n1:a11a-3111,n2:a12a-3111"
+
+# VLAN 3112 port details
+ports_3112: "n1:a11a-3112,n2:a12a-3112"
+
+# ---------------------------------------------------------
+# Storage aggregates
+# ---------------------------------------------------------
+storage_aggregates:
+  - {name: n1_data, node: n1, diskcount: 12}
+  - {name: n2_data, node: n2, diskcount: 12}
+
+# ---------------------------------------------------------
+# List of data aggregates
+# ---------------------------------------------------------
+data_aggr_list: "n1_data,n2_data"
+
+
+# ---------------------------------------------------------
+# Export policy rule details (to be created as part of deployment for both the default)
+# ---------------------------------------------------------
+exp_rules:
+  - {clientmatch: 0.0.0.0/0, rorule: any, rwrule: any, superuser: any, protocol: nfs }
+  - {clientmatch: 192.168.11.0/24, rorule: any, rwrule: any, superuser: any, protocol: nfs }
+  - {clientmatch: 192.168.12.0/24, rorule: any, rwrule: any, superuser: any, protocol: nfs }
+
+
+# ---------------------------------------------------------
+# FlexVol volumes to be created as part of deployment
+# ---------------------------------------------------------
+flexvols:
+  - {vname: datavol01, aggr: n1_data, size: "10", size_unit: tb, jpath: /datavol01}
+
+
+# ---------------------------------------------------------
+# FlexGroup Volumes to be created as part of deployment
+# ---------------------------------------------------------
+flexgroups:
+#  - {vname: datafg01, aggr: n2_data, size: "10", size_unit: tb, jpath: /datafg01}
+  - {vname: datafg01, size: "10", size_unit: tb, jpath: /datafg01}
+

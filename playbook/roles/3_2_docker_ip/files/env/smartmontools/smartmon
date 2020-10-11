@@ -1,0 +1,2 @@
+0 * * * * root bash /etc/exporter.d/smartmon.sh > /run/prometheus/smartmon.prom
+
